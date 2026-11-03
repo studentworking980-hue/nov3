@@ -1,0 +1,64 @@
+After powering the board connect it through serial connection 
+1. On the VEK280 board — PuTTY/serial
+ip link set end0 up
+ip addr flush dev end0
+ip addr add 192.168.1.85/24 dev end0
+
+Check:
+ip addr show end0
+ip route
+
+You should see:
+inet 192.168.1.85/24
+
+2. On the host PC
+sudo ip link set eno2 up
+sudo ip addr flush dev eno2
+sudo ip addr add 192.168.1.52/24 dev eno2
+
+Then:
+ip addr show eno2
+
+You should see:
+inet 192.168.1.52/24
+
+3. Check the route
+Run:
+ip route
+
+You should have:
+192.168.1.0/24 dev eno2 proto kernel scope link src 192.168.1.52
+
+If it isn't there:
+sudo ip route add 192.168.1.0/24 dev eno2 src 192.168.1.52
+
+after setup check the ping to the ip 
+
+then;-
+ssh root@192.168.1.10
+
+after enetering the board 
+Run preflight only
+./zcu104_posedetect_benchmark.sh check
+
+
+This should inspect the environment, model executable, image list, and available tools without running the full benchmark.
+
+
+Run the baseline after fixing the issues above
+RUNS=3 THREADS=1 DURATION=60 \
+./zcu104_posedetect_benchmark.sh baseline
+
+
+This runs three uninstrumented 60-second tests and generates a report. Review run validity and the raw logs before proceeding to profiling.
+
+webcam command:-
+If you want to see the live output on your host PC, first connect to the board using SSH with X11 forwarding.
+
+On your host PC, run:
+ssh -X root@192.168.1.10
+
+
+Then, on the board:
+cd /home/root/Vitis-AI/examples/vai_library/samples/posedetect
+./test_video_posedetect sp_net 0
